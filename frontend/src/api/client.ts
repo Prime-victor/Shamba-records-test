@@ -1,4 +1,13 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api";
+const envApiUrl = import.meta.env.VITE_API_URL?.trim();
+const API_URL = envApiUrl
+  ? envApiUrl.replace(/\/+$/, "")
+  : import.meta.env.DEV
+    ? "http://127.0.0.1:8000/api"
+    : "";
+
+if (!API_URL) {
+  throw new Error("VITE_API_URL is required for production builds.");
+}
 
 type RequestOptions = RequestInit & {
   token?: string | null;

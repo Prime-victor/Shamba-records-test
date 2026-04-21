@@ -115,15 +115,20 @@ smartseason-field-monitoring-system/
 Use `backend/.env.example` as a starting point:
 
 ```env
-SECRET_KEY=django-insecure-change-me
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
+SECRET_KEY=replace-with-a-long-random-secret
+DEBUG=False
+ALLOWED_HOSTS=your-api-domain.com
+DATABASE_URL=postgresql://user:password@host:5432/database
 DB_NAME=smartseason
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_HOST=localhost
 DB_PORT=5432
-CORS_ALLOWED_ORIGINS=http://localhost:5173
+CORS_ALLOWED_ORIGINS=https://your-frontend-domain.com
+CSRF_TRUSTED_ORIGINS=https://your-frontend-domain.com,https://your-api-domain.com
+SECURE_SSL_REDIRECT=True
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
 ```
 
 ### Frontend (`frontend/.env`)
@@ -131,7 +136,74 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173
 Use `frontend/.env.example`:
 
 ```env
-VITE_API_URL=http://127.0.0.1:8000/api
+VITE_API_URL=https://your-api-domain.com/api
+```
+
+## Production Notes
+
+- Set `VITE_API_URL` in the frontend environment for your deployed API. The frontend now requires this in production builds instead of silently falling back to localhost.
+- Set `DEBUG=False` in production.
+- Set a real `SECRET_KEY` in production. The backend now refuses to start with an empty secret key when `DEBUG=False`.
+- Update `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, and `CSRF_TRUSTED_ORIGINS` to your real deployment domains before going live.
+- Keep `.env` files out of git and provide values through your hosting platform's environment settings where possible.
+
+## Vercel + Render Deployment
+
+### Frontend on Vercel
+
+- Root directory: `frontend`
+- Framework preset: `Vite`
+- Build command: `npm run build`
+- Output directory: `dist`
+- Environment variable:
+
+```env
+VITE_API_URL=https://your-render-api.onrender.com/api
+```
+
+- `frontend/vercel.json` is included so React Router routes rewrite to `index.html` correctly on Vercel.
+
+### Backend on Render
+
+- Service type: `Web Service`
+- Root directory: `backend`
+- Build command:
+
+```bash
+./build.sh
+```
+
+- Start command:
+
+```bash
+gunicorn smartseason.wsgi:application
+```
+
+- Recommended environment variables in Render:
+
+```env
+SECRET_KEY=your-real-secret-key
+DEBUG=False
+DATABASE_URL=<use Render Postgres Internal or External Database URL>
+ALLOWED_HOSTS=your-render-api.onrender.com
+CORS_ALLOWED_ORIGINS=https://your-vercel-app.vercel.app
+CSRF_TRUSTED_ORIGINS=https://your-vercel-app.vercel.app,https://your-render-api.onrender.com
+SECURE_SSL_REDIRECT=True
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+```
+
+- Render automatically provides `RENDER_EXTERNAL_HOSTNAME`, and the Django settings now use it to help with host and CSRF handling.
+- The backend now supports `DATABASE_URL`, uses `gunicorn`, and serves collected static files with WhiteNoise.
+
+### Render Postgres
+
+- Create a PostgreSQL database in Render.
+- Copy the database connection string into the backend service's `DATABASE_URL`.
+- After the first deploy, seed demo data with:
+
+```bash
+python manage.py seed_demo_data
 ```
 
 ## Setup Instructions
