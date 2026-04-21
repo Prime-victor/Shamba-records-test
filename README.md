@@ -159,20 +159,3 @@ npm run dev
 Frontend default URL: `http://localhost:5173`
 
 Backend default URL: `http://127.0.0.1:8000`
-
-## Demo Accounts
-
-- Admin
-  - Email: `admin@smartseason.io`
-  - Password: `Admin123!`
-- Agent A
-  - Email: `agent.a@smartseason.io`
-  - Password: `Agent123!`
-- Agent B
-  - Email: `agent.b@smartseason.io`
-  - Password: `Agent123!`
-
-## Notes
-
-- The repository originally contained empty `Backend/` and `Frontend/` folders. The runnable application is implemented in `backend/` and `frontend/` to match the requested structure.
-- Dependencies were not installed in this workspace, so the final verification in this delivery is limited to static structure and code review.
